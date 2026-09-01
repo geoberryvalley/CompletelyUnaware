@@ -22,10 +22,19 @@ def get_current_balance():
             cur.execute("SELECT * FROM currentbalance")
             return cur.fetchone()
 
-def open_new_position(symbol, size, price):
+def open_position(symbol, size, price):
     with pool.connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute("INSERT INTO currentpositions (symbol, size, openprice, opentime) VALUES (%s, %s, %s, %s)", (symbol, size, price, datetime.datetime.now()))
+            #first, check to see if the position exists already
+            cur.execute("SELECT * FROM currentpositions WHERE symbol = %s", (symbol,))
+            existing_position = cur.fetchone()
+            if existing_position is not None:
+                if existing_position['size'] + size != 0:
+                    cur.execute("UPDATE currentpositions SET size = size + %s, openprice = %s, opentime = %s WHERE symbol = %s", (size, price, datetime.datetime.now(), symbol))
+                else:
+                    cur.execute("DELETE FROM currentpositions WHERE symbol = %s", (symbol,))
+            else:
+                cur.execute("INSERT INTO currentpositions (symbol, size, openprice, opentime) VALUES (%s, %s, %s, %s)", (symbol, size, price, datetime.datetime.now()))
             cur.execute("UPDATE currentbalance SET balance = balance - %s WHERE index = 0", (size * price, ))
 
 def close_position(symbol, closeprice):
@@ -41,12 +50,6 @@ def close_position(symbol, closeprice):
             cur.execute("DELETE FROM currentpositions WHERE index = %s", (position['index'],))
             cur.execute("UPDATE currentbalance SET balance = balance + %s WHERE index = 0", (round(size * closeprice, 2), ))
 
-def get_open_positions():
-    with pool.connection() as conn:
-        with conn.cursor(row_factory=dict_row) as cur:  
-            cur.execute("SELECT * FROM currentpositions")
-            return cur.fetchall()
-
 def record_balance():
     with pool.connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
@@ -55,4 +58,4 @@ def record_balance():
             if current_balance is None:
                 raise Exception("No current balance found. Please check the database.")
             current_balance = round(current_balance['balance'], 2)
-            cur.execute("INSERT INTO historicalbalance (balance, recordtime) VALUES (%s, %s)", (current_balance, datetime.datetime.now()))
+            cur.execute("INSERT INTO historicalbalance (balance, index, date) VALUES (%s, %s, %s)", (current_balance, 0, datetime.datetime.now()))
