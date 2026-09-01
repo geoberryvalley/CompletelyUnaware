@@ -219,3 +219,14 @@ def closePosition(symbol, discID):
         print(f"Error: {e}")
         return f"Error: Unable to close position for symbol {symbol}. Please check if the position exists and try again."
     return f"Closed position for {symbol} at ${closeprice}."
+
+def getHistoricalBalance(discID):
+    if not db_functions.has_account(discID):
+        return "Error: No account found for this Discord ID. Please open an account first."
+    historical_balance = db_functions.get_historical_balance(discID)
+    if not historical_balance:
+        return "No historical balance records found."
+    retInfo = "## HISTORICAL BALANCE:\n"
+    for record in historical_balance:
+        retInfo += f"- ${record['balance']} at {record['datetime']}\n"
+    return retInfo

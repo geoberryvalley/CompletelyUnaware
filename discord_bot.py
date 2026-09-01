@@ -56,6 +56,12 @@ async def close(ctx, symbol: str):
     result = stocks_functions.closePosition(symbol, ctx.author.id)
     await ctx.respond(result)
 
+@stocks.command(name="balance history", description="Get the balance history of your account.")
+async def balance_history(ctx):
+    await ctx.defer()  # Acknowledge the command to avoid timeout
+    result = stocks_functions.getHistoricalBalance(ctx.author.id)
+    await ctx.respond(result)
+
 try:
     bot.run(discord_token)
 finally:

@@ -57,6 +57,12 @@ def close_position(symbol, closeprice, discID):
             cur.execute("UPDATE currentbalance SET balance = balance + %s WHERE userid = %s", (round(size * closeprice, 2), discID))
             record_balance(discID)  # Record the balance after closing the position
 
+def get_historical_balance(discID):
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("SELECT * FROM historicalbalance WHERE userid = %s ORDER BY datetime DESC LIMIT 100", (discID,))
+            return cur.fetchall()
+
 
 def record_balance(discID):
     with pool.connection() as conn:
