@@ -66,7 +66,7 @@ def get_historical_balance(discID):
 def get_historical_positions(discID):
     with pool.connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute("SELECT * FROM historicalpositions WHERE userid = %s ORDER BY datetime DESC LIMIT 100", (discID,))
+            cur.execute("SELECT * FROM historicalpositions WHERE userid = %s ORDER BY closetime DESC LIMIT 100", (discID,))
             return cur.fetchall()
 
 
