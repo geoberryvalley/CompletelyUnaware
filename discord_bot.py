@@ -56,10 +56,16 @@ async def close(ctx, symbol: str):
     result = stocks_functions.closePosition(symbol, ctx.author.id)
     await ctx.respond(result)
 
-@stocks.command(name="balance history", description="Get the balance history of your account.")
-async def balance_history(ctx):
+@stocks.command(name="balancehistory", description="Get the balance history of your account.")
+async def balancehistory(ctx):
     await ctx.defer()  # Acknowledge the command to avoid timeout
     result = stocks_functions.getHistoricalBalance(ctx.author.id)
+    await ctx.respond(result)
+
+@stocks.command(name="positionhistory", description="Get the position history of your account.")
+async def positionhistory(ctx):
+    await ctx.defer()  # Acknowledge the command to avoid timeout
+    result = stocks_functions.getHistoricalPositions(ctx.author.id)
     await ctx.respond(result)
 
 try:

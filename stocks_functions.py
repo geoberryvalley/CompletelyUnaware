@@ -230,3 +230,14 @@ def getHistoricalBalance(discID):
     for record in historical_balance:
         retInfo += f"- ${record['balance']} at {record['datetime']}\n"
     return retInfo
+
+def getHistoricalPositions(discID):
+    if not db_functions.has_account(discID):
+        return "Error: No account found for this Discord ID. Please open an account first."
+    historical_positions = db_functions.get_historical_positions(discID)
+    if not historical_positions:
+        return "No historical position records found."
+    retInfo = "## HISTORICAL POSITIONS:\n"
+    for record in historical_positions:
+        retInfo += f"- {record['symbol']}: {record['size']} shares at ${record['price']} on {record['datetime']}\n"
+    return retInfo
