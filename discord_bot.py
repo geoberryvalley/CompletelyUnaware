@@ -12,22 +12,30 @@ async def on_ready():
 
 stocks = bot.create_group("stocks", "Commands related to stock trading")
 
-@stocks.command(name="runalgorithm", description="Run the open today algorithm.")
-async def runalgoritm(ctx):
-    await ctx.defer()  # Acknowledge the command to avoid timeout
-    result = stocks_functions.openTodayAlgo()
+@stocks.command(name="openaccount", description="Open a new account with $10,000 starting balance.")
+async def openaccount(ctx):
+    await ctx.defer()
+    result = stocks_functions.openAccount(ctx.author.id)
     await ctx.respond(result)
 
-@stocks.command(name="closepositions", description="Close all open positions.")
-async def closepositions(ctx):
+#removed command because im opening up the bot and i dont want to waste my credits
+
+# @stocks.command(name="runalgorithm", description="Run the open today algorithm.")
+# async def runalgoritm(ctx):
+#     await ctx.defer()  # Acknowledge the command to avoid timeout
+#     result = stocks_functions.openTodayAlgo()
+#     await ctx.respond(result)
+
+@stocks.command(name="closeall", description="Close all open positions.")
+async def closeall(ctx):
     await ctx.defer()  # Acknowledge the command to avoid timeout
-    result = stocks_functions.closeAllPositions()
+    result = stocks_functions.closeAllPositions(ctx.author.id)
     await ctx.respond(result)
 
 @stocks.command(name="checkaccount", description="Get all current positions and account balance.")
 async def getcurrentpositions(ctx):
     await ctx.defer()  # Acknowledge the command to avoid timeout
-    result = stocks_functions.checkPositions()
+    result = stocks_functions.checkPositions(ctx.author.id)
     await ctx.respond(result)
 
 @stocks.command(name="lookupsymbol", description="Lookup a stock symbol.")
@@ -36,16 +44,16 @@ async def lookupsymbol(ctx, symbol: str):
     result = stocks_functions.lookupSymbol(symbol)
     await ctx.respond(result)
 
-@stocks.command(name="open", description="Open a position for a stock symbol. Enter a negative number to short.")
-async def buy(ctx, symbol: str, size: int):
+@stocks.command(name="position", description="Open a position for a stock symbol. Enter a negative number to short.")
+async def position(ctx, symbol: str, size: int):
     await ctx.defer()  # Acknowledge the command to avoid timeout
-    result = stocks_functions.openPosition(symbol, size)
+    result = stocks_functions.openPosition(symbol, size, ctx.author.id)
     await ctx.respond(result)
 
 @stocks.command(name="close", description="Close a position for a stock symbol.")
-async def sell(ctx, symbol: str):
+async def close(ctx, symbol: str):
     await ctx.defer()  # Acknowledge the command to avoid timeout
-    result = stocks_functions.closePosition(symbol)
+    result = stocks_functions.closePosition(symbol, ctx.author.id)
     await ctx.respond(result)
 
 try:
