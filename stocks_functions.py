@@ -122,8 +122,7 @@ def closeAllPositions():
         assert newBalance is not None, "Current balance is None. Please check the database."
         newBalance = round(newBalance['balance'], 2)
         retInfo += f"New balance: ${newBalance}\n"
-
-        return retInfo
+    return retInfo
 
 def checkPositions():
     retInfo = "## CURRENT POSITIONS:\n"
