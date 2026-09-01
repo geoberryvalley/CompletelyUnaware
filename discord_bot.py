@@ -36,10 +36,16 @@ async def lookupsymbol(ctx, symbol: str):
     result = stocks_functions.lookupSymbol(symbol)
     await ctx.respond(result)
 
-@stocks.command(name="buy", description="Buy a stock symbol.")
+@stocks.command(name="open", description="Open a position for a stock symbol. Enter a negative number to short.")
 async def buy(ctx, symbol: str, size: int):
     await ctx.defer()  # Acknowledge the command to avoid timeout
     result = stocks_functions.openPosition(symbol, size)
+    await ctx.respond(result)
+
+@stocks.command(name="close", description="Close a position for a stock symbol.")
+async def sell(ctx, symbol: str):
+    await ctx.defer()  # Acknowledge the command to avoid timeout
+    result = stocks_functions.closePosition(symbol)
     await ctx.respond(result)
 
 try:
