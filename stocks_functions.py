@@ -2,6 +2,7 @@ from numpy import record
 import requests
 import json
 import datetime
+import alpaca
 
 from filter_functions import *
 from constants import *
@@ -98,14 +99,13 @@ def closeAllPositions():
         for position in oldPositions:
             print(f"  {position['symbol']}: {position['size']} shares at ${position['openprice']}")
         # Fetch the latest bar data for each symbol
-        url = f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={','.join([record['symbol'] for record in oldPositions])}"
-        headers = {
-            "accept": "application/json",
-            "APCA-API-KEY-ID": alpaca_api_key,
-            "APCA-API-SECRET-KEY": alpaca_secret_key
-        }
-        response = requests.get(url, headers=headers).json()["bars"]
-        assert type(response) == dict, "Response from Alpaca API is not in the expected format."
+        symbolString = ','.join([record['symbol'] for record in oldPositions])
+        response = None
+        try:
+            response = alpaca.getStockData(symbolString)  # Check if the symbol is valid
+        except Exception as e:
+            print(f"Error: {e}")
+            return f"Error: Unable to retrieve data for symbol {symbolString}. Please check the symbol and try again."
 
         for position in oldPositions:
             symbol = position['symbol']
@@ -134,14 +134,13 @@ def checkPositions():
     else:
         print("Open positions:")
         # Fetch the latest bar data for each symbol
-        url = f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={','.join([record['symbol'] for record in openPositions])}"
-        headers = {
-            "accept": "application/json",
-            "APCA-API-KEY-ID": alpaca_api_key,
-            "APCA-API-SECRET-KEY": alpaca_secret_key
-        }
-        response = requests.get(url, headers=headers).json()["bars"]
-        assert type(response) == dict, "Response from Alpaca API is not in the expected format."
+        symbolString = ','.join([record['symbol'] for record in openPositions])
+        response = None
+        try:
+            response = alpaca.getStockData(symbolString)  # Check if the symbol is valid
+        except Exception as e:
+            print(f"Error: {e}")
+            return f"Error: Unable to retrieve data for symbols {symbolString}."
         for position in openPositions:
             symbol = position['symbol']
             curprice = response[symbol]['c']  # Get the current price from the latest bar data
@@ -156,20 +155,11 @@ def checkPositions():
     return retInfo
 
 def lookupSymbol(symbol):
-    symbol = symbol.upper()
-    url = f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={symbol}"
-    headers = {
-        "accept": "application/json",
-        "APCA-API-KEY-ID": alpaca_api_key,
-        "APCA-API-SECRET-KEY": alpaca_secret_key
-    }
-    response = requests.get(url, headers=headers).json()["bars"]
+    response = None
     try:
-        print(response)
-        assert type(response) == dict, "Response from Alpaca API is not in the expected format."
-    except AssertionError as e:
+        response = alpaca.getStockData(symbol)  # Check if the symbol is valid
+    except Exception as e:
         print(f"Error: {e}")
-        print(f"Response: {response}")
         return f"Error: Unable to retrieve data for symbol {symbol}. Please check the symbol and try again."
     retInfo = f"""## SYMBOL LOOKUP: {symbol}
     Current price: ${response[symbol]['c']}
@@ -181,21 +171,12 @@ def lookupSymbol(symbol):
     return retInfo
 
 def openPosition(symbol, size):
-    symbol = symbol.upper()
-    url = f"https://data.alpaca.markets/v2/stocks/bars/latest?symbols={symbol}"
-    headers = {
-        "accept": "application/json",
-        "APCA-API-KEY-ID": alpaca_api_key,
-        "APCA-API-SECRET-KEY": alpaca_secret_key
-    }
-    response = requests.get(url, headers=headers).json()["bars"]
+    response = None
     try:
-        assert type(response) == dict, "Response from Alpaca API is not in the expected format."
-    except AssertionError as e:
+        response = alpaca.getStockData(symbol)  # Check if the symbol is valid
+    except Exception as e:
         print(f"Error: {e}")
-        print(f"Response: {response}")
         return f"Error: Unable to retrieve data for symbol {symbol}. Please check the symbol and try again."
-    
     price = response[symbol]['c']  # Get the current price from the latest bar data
     db_functions.open_position(symbol, size, price)
     retInfo = f"Opened position for {symbol}: {size} shares at ${price}"
@@ -208,3 +189,18 @@ def openPosition(symbol, size):
         print(f"Error: {e}")
         retInfo += "\n\n## CURRENT BALANCE:\n- Error retrieving current balance. Please check the database.\n"
     return retInfo
+
+def closePosition(symbol):
+    response = None
+    try:
+        response = alpaca.getStockData(symbol)  # Check if the symbol is valid
+    except Exception as e:
+        print(f"Error: {e}")
+        return f"Error: Unable to retrieve data for symbol {symbol}. Please check the symbol and try again."
+    closeprice = response[symbol]['c']  # Get the current price from the latest bar data
+    try:
+        db_functions.close_position(symbol, closeprice)
+    except Exception as e:
+        print(f"Error: {e}")
+        return f"Error: Unable to close position for symbol {symbol}. Please check if the position exists and try again."
+    return f"Closed position for {symbol} at ${closeprice}."
