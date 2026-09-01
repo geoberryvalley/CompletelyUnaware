@@ -33,6 +33,7 @@ def open_position(symbol, size, price):
                     cur.execute("UPDATE currentpositions SET size = size + %s, openprice = %s, opentime = %s WHERE symbol = %s", (size, price, datetime.datetime.now(), symbol))
                 else:
                     cur.execute("DELETE FROM currentpositions WHERE symbol = %s", (symbol,))
+                    record_balance()  # Record the balance after closing the position
             else:
                 cur.execute("INSERT INTO currentpositions (symbol, size, openprice, opentime) VALUES (%s, %s, %s, %s)", (symbol, size, price, datetime.datetime.now()))
             cur.execute("UPDATE currentbalance SET balance = balance - %s WHERE index = 0", (size * price, ))
@@ -49,6 +50,8 @@ def close_position(symbol, closeprice):
             cur.execute("INSERT INTO historicalpositions (index, symbol, size, openprice, opentime, closeprice, closetime) VALUES (%s, %s, %s, %s, %s, %s, %s)", (position['index'], symbol, size, openprice, position['opentime'], closeprice, datetime.datetime.now()))
             cur.execute("DELETE FROM currentpositions WHERE index = %s", (position['index'],))
             cur.execute("UPDATE currentbalance SET balance = balance + %s WHERE index = 0", (round(size * closeprice, 2), ))
+            record_balance()  # Record the balance after closing the position
+
 
 def record_balance():
     with pool.connection() as conn:
@@ -58,4 +61,4 @@ def record_balance():
             if current_balance is None:
                 raise Exception("No current balance found. Please check the database.")
             current_balance = round(current_balance['balance'], 2)
-            cur.execute("INSERT INTO historicalbalance (balance, index, date) VALUES (%s, %s, %s)", (current_balance, 0, datetime.datetime.now()))
+            cur.execute("INSERT INTO historicalbalance (balance, index, datetime) VALUES (%s, %s, %s)", (current_balance, 0, datetime.datetime.now()))
