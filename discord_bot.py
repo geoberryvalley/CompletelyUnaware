@@ -71,4 +71,4 @@ async def positionhistory(ctx):
 try:
     bot.run(discord_token)
 finally:
-    db_functions.close_pool()
+    db_functions.close_pool()   

@@ -164,6 +164,7 @@ def checkPositions(discID):
     return retInfo
 
 def lookupSymbol(symbol):
+    symbol = symbol.upper()  # Ensure the symbol is in uppercase
     response = None
     try:
         response = alpaca.getStockData(symbol)  # Check if the symbol is valid
@@ -180,8 +181,11 @@ def lookupSymbol(symbol):
     return retInfo
 
 def openPosition(symbol, size, discID):
+    symbol = symbol.upper()  # Ensure the symbol is in uppercase
     if not db_functions.has_account(discID):
         return "Error: No account found for this Discord ID. Please open an account first."
+    if size == 0:
+        return "Error: Position size cannot be zero. Please provide a non-zero size."
     response = None
     try:
         response = alpaca.getStockData(symbol)  # Check if the symbol is valid
@@ -203,6 +207,7 @@ def openPosition(symbol, size, discID):
     return retInfo
 
 def closePosition(symbol, discID):
+    symbol = symbol.upper()  # Ensure the symbol is in uppercase
     if not db_functions.has_account(discID):
         return "Error: No account found for this Discord ID. Please open an account first."
     response = None

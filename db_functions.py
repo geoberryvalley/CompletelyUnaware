@@ -41,7 +41,7 @@ def open_position(symbol, size, price, discID):
                     cur.execute("DELETE FROM currentpositions WHERE symbol = %s AND userid = %s", (symbol, discID))
                     record_balance(discID)  # Record the balance after closing the position
             else:
-                cur.execute("INSERT INTO currentpositions (userid, symbol, size, openprice, opentime) VALUES (%s, %s, %s, %s)", (discID, symbol, size, price, datetime.datetime.now()))
+                cur.execute("INSERT INTO currentpositions (userid, symbol, size, openprice, opentime) VALUES (%s, %s, %s, %s, %s)", (discID, symbol, size, price, datetime.datetime.now()))
             cur.execute("UPDATE currentbalance SET balance = balance - %s WHERE userid = %s", (size * price, discID))
 
 def close_position(symbol, closeprice, discID):
